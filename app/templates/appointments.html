@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>CVS Vaccine Availability</title>
+</head>
+<body>
+	<article>
+		<header>
+			<h1>CVS Vaccine Availability near you!</h1>
+		</header>
+		<p><strong>Howdie do {{ recipient }},</strong></p>
+			The following locations have vaccine appointments. 
+			<dl>
+				<dt><b>Cities</b></dt>
+				{% for city, state in locations %}
+					<dd>{{ city|title }}, {{ state|title|upper() }}</dd>
+				{% endfor %}
+			</dl>
+			<p>
+				CVS updates availability every <b>15 minutes</b>. The last update was at: <b><time datetime="{{ last_cvs_update_ugly }}">{{ last_cvs_update_pretty }} EST</time></b>
+			</p>
+			<p>
+				 I've seen CVS release new appointments around <b><time datetime="02:45">2:45AM</time>EST</b>each day, and I've had GREAT success booking my appointment around <b><time datetime="07:00">7:00AM</time>EST</b>
+			</p>
+			<p>
+				This email will continue coming until you tell me you no longer want them. Click <a href="mailto:{{ my_email }}">here</a> to send your friendly, neighborhood coder, an email and I'll remove you from this email.
+			</p>
+			<p>
+				<strong><em>Good luck!</em></strong>
+			</p>
+			<footer>
+				<small><em>Your friendly neighborhood coder...</em></small>
+			</footer>
+			
+	</article>
+</body>
+</html>
