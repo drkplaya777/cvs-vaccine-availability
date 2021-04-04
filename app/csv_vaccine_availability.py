@@ -1,15 +1,13 @@
-import pprint
 import requests
-import time
-import beepy
 import datetime
-import jinja2
 import os
 import typing
 
+import jinja2
+import requests
 
 from app.gmail.sender_email import (
-    create_email, send_email, get_gmail_service, get_email, get_email_subject)
+    create_email, send_email, get_gmail_service)
 
 
 def populate_email_template(
@@ -60,8 +58,6 @@ def get_vaccine_availability(state: str) -> typing.Dict[str, typing.List[typing.
     payload_data = response['responsePayloadData']['data']
     state_data = payload_data[state]
     last_updated_time = response['responsePayloadData']['currentTime']
-
-    print(response)
 
     print((f"CVS last UPDATED at: "
            f"{response['responsePayloadData']['currentTime']}"))
