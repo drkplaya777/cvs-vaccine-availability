@@ -14,7 +14,8 @@ def check_cvs_for_immunization_availability(from_address:str,
                                             subject: str,
                                             cities: set,
                                             recipient_name: str,
-                                            state: str):
+                                            state: str,
+                                            sleep_time: int):
     one_hour = 3600
 
     while True:
@@ -36,5 +37,5 @@ def check_cvs_for_immunization_availability(from_address:str,
         else:
             print(f'No availability found in cites {cities}')
             print(f'Trying again in 10 minutes')
-            time.sleep(300)
+            time.sleep(sleep_time)
             print('\n')

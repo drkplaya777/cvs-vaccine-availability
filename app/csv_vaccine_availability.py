@@ -60,6 +60,9 @@ def get_vaccine_availability(state: str) -> typing.Dict[str, typing.List[typing.
     payload_data = response['responsePayloadData']['data']
     state_data = payload_data[state]
     last_updated_time = response['responsePayloadData']['currentTime']
+
+    print(response)
+
     print((f"CVS last UPDATED at: "
            f"{response['responsePayloadData']['currentTime']}"))
     print(f"CVS last CHECKED at: {datetime.datetime.today()}")
@@ -109,51 +112,3 @@ def send_cvs_availability_email(
     electronic_mail = send_email(email_service, user_id, email_body)
 
     return electronic_mail
-
-
-def submit_request():
-    hours_to_run = 3
-    max_time = time.time() + hours_to_run * 60 * 60
-    state = 'NY'
-    mappings = dict()
-    appointment_found = False
-
-    while not appointment_found:
-        response = requests.get(
-            "https://www.cvs.com/immunizations/covid-19-vaccine.vaccine-status.{}.json?vaccineinfo".format(
-                state.lower()),
-            headers={
-                "Referer": "https://www.cvs.com/immunizations/covid-19-vaccine",
-            })
-        response = response.json()
-        payload_data = response['responsePayloadData']['data']
-        ny_state = payload_data[state]
-
-        pprint.pprint(response)
-
-        for item in payload_data[state]:
-            mappings[item.get('city')] = item.get('status')
-
-        cities = ['ALBANY', 'TROY', 'WYNANTSKILL', 'SCHENECTADY', 'RENSSELAER',
-                  'COLONIE', 'CLIFTON PARK', 'LATHAM']
-        for city in cities:
-            print(city, mappings[city])
-
-        print(
-            f"Last updated at: {response['responsePayloadData']['currentTime']}")
-        print(f"Last checked at: {datetime.datetime.today()}")
-        for city in ny_state:
-            if city['city'] in cities and city[
-                'status'].upper() != 'FULLY BOOKED':
-                print(f"Appointment's {city['status']} found in {city['city']}")
-                beepy.beep(sound='coin')
-                appointment_found = True
-        else:
-            print(f'No appointments found in {cities}')
-
-            time.sleep(300)
-            print('\n')
-
-
-if __name__ == '__main__':
-    submit_request()
