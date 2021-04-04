@@ -1,24 +1,33 @@
 import pytest
 
-from app.csv_vaccine_availability import create_email_message
-
-TEST_CITY = 'TROY'
-TEST_STATE = 'NY'
-TEST_SENDER = 'me'
+import tests.common.test_constants as const
+from app.csv_vaccine_availability import (
+    get_immunization_locations)
 
 
-def test_email_message_contains_city_and_status():
-    appointment_locations = [(TEST_CITY, TEST_STATE)]
+def test_appointments_parsed_from_cvs_availability():
+    cities = {const.TEST_CITY_ALBANY, const.TEST_CITY_TROY,
+              const.TEST_CITY_SCHENECTADY}
+    locations = [{'city': const.TEST_CITY_ALBANY,
+                  'state': const.TEST_STATE_NY,
+                  'status': const.AVAILABLE_STATUS},
+                 {'city': const.TEST_CITY_TROY,
+                  'state': const.TEST_STATE_NY,
+                  'status': const.AVAILABLE_STATUS},
+                 {'city': const.TEST_CITY_SCHENECTADY,
+                  'state': const.TEST_STATE_NY,
+                  'status': const.AVAILABLE_STATUS}]
+    vaccine_availability = dict(last_update_time=const.LAST_CVS_UPDATE,
+                                data=locations)
 
-    email_message = create_email_message(TEST_SENDER,
-                                         appointment_locations)
+    location_data = get_immunization_locations(cities, const.TEST_STATE_NY,
+                                               vaccine_availability)
 
-    expected_email = """
-    
-    """
-
-    assert TEST_CITY in email_message
-    assert TEST_STATE in email_message
+    assert 'last_update' in location_data
+    for location in location_data['available_locations']:
+        assert location.get('city')
+        assert location.get('status')
+        assert location.get('state')
 
 
 if __name__ == '__main__':

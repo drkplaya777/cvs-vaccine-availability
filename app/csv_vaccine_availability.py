@@ -5,23 +5,22 @@ import beepy
 import datetime
 import jinja2
 import os
+import typing
 
 
-def create_email_message(name, appointment_locations) -> str:
-    """Creates an appointments found email"""
-    email_template = f"""
-    Howdie do there {name},
-    
-    The following locations have appointments available 
-    {appointment_locations}
-    """
-
-    return email_template
+from app.gmail.sender_email import (
+    create_email, send_email, get_gmail_service, get_email, get_email_subject)
 
 
-def populate_email_template(sender: str, appointments: list,
-                            last_cvs_update: str) -> str:
+def populate_email_template(
+        sender: str,
+        appointments: typing.Dict
+) -> str:
     """Populates a CVS availability email"""
+    last_cvs_update_raw = appointments['last_update']
+    last_cvs_pretty_date = pretty_up_date(appointments['last_update'])
+    locations = appointments['available_locations']
+
     my_email = os.environ['friendly_coder_email']
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('app', 'templates'),
@@ -29,13 +28,8 @@ def populate_email_template(sender: str, appointments: list,
     )
     template = env.get_template('appointments.html')
 
-    appointments.sort()
-
-    last_cvs_update_raw = last_cvs_update
-    last_cvs_pretty_date = pretty_up_date(last_cvs_update)
-
     email_template = template.render(recipient=sender,
-                                     locations=appointments,
+                                     locations=locations,
                                      last_cvs_update_ugly=last_cvs_update_raw,
                                      last_cvs_update_pretty=last_cvs_pretty_date,
                                      my_email=my_email)
@@ -50,6 +44,65 @@ def pretty_up_date(ugly_date: str) -> str:
     pretty_date = date.strftime("%c")
 
     return pretty_date
+
+
+def get_vaccine_availability(state: str) -> typing.Dict[str, typing.List[typing.Dict]]:
+    """Queries CVS for any availability for vaccine shots!"""
+    print('Checking for CVS Availability')
+    vaccine_url = (f"https://www.cvs.com/immunizations/"
+                   f"covid-19-vaccine.vaccine-status.{state}.json?vaccineinfo")
+    cvs_referer = "https://www.cvs.com/immunizations/covid-19-vaccine"
+    response = requests.get(vaccine_url,
+                            headers={"Referer": cvs_referer})
+    response = response.json()
+    payload_data = response['responsePayloadData']['data']
+    state_data = payload_data[state]
+    last_updated_time = response['responsePayloadData']['currentTime']
+
+    print((f"CVS last updated at: "
+           f"{response['responsePayloadData']['currentTime']}"))
+    print(f"CVS last checked at: {datetime.datetime.today()}")
+
+    return dict(last_update_time=last_updated_time, data=state_data)
+
+
+def get_immunization_locations(
+        cities: set,
+        state: str,
+        locations: typing.Dict[str, typing.List[typing.Dict]]
+) -> typing.Dict[str, typing.List[dict]]:
+    """Parses out available locations from a CVS response"""
+    print('Filtering out FULLY BOOKED locations')
+    immunization_locations = dict()
+    filtered_cities = []
+    immunization_locations['last_update'] = locations.get('last_update_time')
+    immunization_locations['available_locations'] = filtered_cities
+
+    for item in locations['data']:
+        if item['city'] in cities and item['status'].upper() != 'FULLY BOOKED':
+            print(f"Appointment found in {item.get('city')}, {state}")
+            location = (item.get('city'), state)
+            filtered_cities.append(location)
+
+    return immunization_locations
+
+
+def send_cvs_availability_email(
+        from_address: str,
+        to_address: str,
+        subject: str,
+        immunization_locations: dict,
+):
+    """Sends an email via Gmail containing Immunization availability for CVS."""
+    email_template = populate_email_template(
+        from_address, immunization_locations
+    )
+    email_body = email_template
+
+    email_service = get_gmail_service()
+    email_body = create_email(from_address, to_address, subject, email_body)
+    user_id = 'me'
+    electronic_mail = send_email(email_service, user_id, email_body)
 
 
 def submit_request():
