@@ -10,7 +10,7 @@
 			<h1>CVS Vaccine Availability near you!</h1>
 		</header>
 		<p><strong>Howdie do {{ recipient }},</strong></p>
-			The following locations have vaccine appointments. 
+			The following locations have vaccine availability.
 			<dl>
 				<dt><b>Cities</b></dt>
 				{% for city, state in locations %}
@@ -19,6 +19,9 @@
 			</dl>
 			<p>
 				CVS updates availability every <b>15 minutes</b>. The last update was at: <b><time datetime="{{ last_cvs_update_ugly }}">{{ last_cvs_update_pretty }} EST</time></b>
+			</p>
+			<p>
+				I recommend using the <b>CVS Pharmacy app</b> as the CVS website tends to error out. <strong><em>BOOK NOW!</em></strong>
 			</p>
 			<p>
 				 I've seen CVS release new appointments around <b><time datetime="02:45">2:45AM</time>EST</b>each day, and I've had GREAT success booking my appointment around <b><time datetime="07:00">7:00AM</time>EST</b>
