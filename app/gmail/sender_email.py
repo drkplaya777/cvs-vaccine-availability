@@ -154,7 +154,7 @@ def send_email(gmail_service, user_id: str, email_body: str):
     except errors.HttpError as error:
         print('An error occurred: %s' % error)
     else:
-        print('Message Id: %s' % message['id'])
+        print('Email Message Id: %s SENT!' % message['id'])
 
         return message
 

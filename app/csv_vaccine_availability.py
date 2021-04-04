@@ -14,7 +14,8 @@ from app.gmail.sender_email import (
 
 def populate_email_template(
         sender: str,
-        appointments: typing.Dict
+        appointments: typing.Dict,
+        recipient_name: str
 ) -> str:
     """Populates a CVS availability email"""
     last_cvs_update_raw = appointments['last_update']
@@ -29,6 +30,7 @@ def populate_email_template(
     template = env.get_template('appointments.html')
 
     email_template = template.render(recipient=sender,
+                                     recipient_name=recipient_name,
                                      locations=locations,
                                      last_cvs_update_ugly=last_cvs_update_raw,
                                      last_cvs_update_pretty=last_cvs_pretty_date,
@@ -58,10 +60,9 @@ def get_vaccine_availability(state: str) -> typing.Dict[str, typing.List[typing.
     payload_data = response['responsePayloadData']['data']
     state_data = payload_data[state]
     last_updated_time = response['responsePayloadData']['currentTime']
-
-    print((f"CVS last updated at: "
+    print((f"CVS last UPDATED at: "
            f"{response['responsePayloadData']['currentTime']}"))
-    print(f"CVS last checked at: {datetime.datetime.today()}")
+    print(f"CVS last CHECKED at: {datetime.datetime.today()}")
 
     return dict(last_update_time=last_updated_time, data=state_data)
 
@@ -80,7 +81,8 @@ def get_immunization_locations(
 
     for item in locations['data']:
         if item['city'] in cities and item['status'].upper() != 'FULLY BOOKED':
-            print(f"Appointment found in {item.get('city')}, {state}")
+            print((f"Immunization availability found in {item.get('city')}, "
+                   f"{state}"))
             location = (item.get('city'), state)
             filtered_cities.append(location)
 
@@ -92,10 +94,12 @@ def send_cvs_availability_email(
         to_address: str,
         subject: str,
         immunization_locations: dict,
+        recipient_name: str
 ):
     """Sends an email via Gmail containing Immunization availability for CVS."""
+    print('Sending CVS Availability Email')
     email_template = populate_email_template(
-        from_address, immunization_locations
+        from_address, immunization_locations, recipient_name
     )
     email_body = email_template
 
@@ -103,6 +107,8 @@ def send_cvs_availability_email(
     email_body = create_email(from_address, to_address, subject, email_body)
     user_id = 'me'
     electronic_mail = send_email(email_service, user_id, email_body)
+
+    return electronic_mail
 
 
 def submit_request():
