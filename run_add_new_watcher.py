@@ -13,7 +13,7 @@ from app.celery_tasks import check_cvs_for_immunization_availability
 @click.argument("email")
 @click.argument("cities")
 @click.argument("state")
-@click.option("--from_address", default="walkej19@gmail.com",
+@click.option("--from_address", default="",
               help="email address to send the CVS email from")
 @click.option("--subject", default=const.EMAIL_SUBJECT_CSV_AVAILABILITY,
               help="subject of the CVS email")
